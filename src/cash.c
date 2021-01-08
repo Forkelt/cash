@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <syscall.h>
 #include <string.h>
+#include <sys/queue.h>
+#include "../lib/include/linenoise.h"
 
 int main(void)
 {
