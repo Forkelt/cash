@@ -2,6 +2,8 @@
 #define _CASH_H_
 #include <stdio.h>
 
+#define OPTSTRING "c:"
+#define HISTORY "cashhistory.txt"
 #define SIGNAL_BASE 128
 #define PROMPT "mysh$ "
 #define SYNTAX_ERROR 254

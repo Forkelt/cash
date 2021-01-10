@@ -12,11 +12,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
-#include <sys/queue.h>
+#include <readline.h>
 #include "include/cash.h"
-#include "lib/include/linenoise.h"
+
+extern FILE *yyin;
 
 static char **gargv;
+
+void handle_interrupt(int sig);
 %}
 
 %union {
@@ -73,25 +76,34 @@ void handle_interrupt(int sig)
 		return;
 	putchar('\n');
 	execv(gargv[0], gargv);
-	printf("execl failed\n");
 	exit(127);
 }
 
 int main(int argc, char **argv)
 {
-	gargv = argv;
-	gargv[0] = "/proc/self/exe";	
-
 	struct sigaction inthandler = { 
 		.sa_handler = handle_interrupt,
 		.sa_flags = SA_NODEFER
 	};
-	sigaction(SIGINT, &inthandler, 0);
-	
-	cash_init();
+	sigaction(SIGINT, &inthandler, 0);	
 
-	/* parse from linenoise */
-	linenoiseHistoryLoad("cashhistory.txt");
+	cash_init();
+	/*if (getopt(argc, argv) == 'c') {
+		return 0;
+	}*/
+	
+	if (argc > 1) {
+		/* parse from file */
+		yyin = fopen(argv[1], "r");
+		yyparse();
+		return 0;
+	}	
+
+	/* parse from readline */
+	gargv = argv;
+	gargv[0] = "/proc/self/exe";	
+	
+	read_history(HISTORY);
 	yyparse();
 }
 

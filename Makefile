@@ -36,7 +36,7 @@ yacc: flex_cash
 flex_cash: $(YSRC) $(LSRC) $(LIBSRC) $(SRC) $(DEPS) $(LDEPS)
 	$(YAC) -d $(YSRC)
 	$(LEX) $(LSRC) 
-	$(CC) -o $@ $(SRC) $(LIBSRC) bison_cash.tab.c lex.yy.c -lfl
+	$(CC) -o $@ $(SRC) $(LIBSRC) bison_cash.tab.c lex.yy.c -lfl -I/usr/include/editline -ledit
 
 $(TARGET): $(OBJ) $(LIB)
 	$(CC) $^ -o $@

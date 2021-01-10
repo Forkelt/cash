@@ -9,28 +9,35 @@
 %option noyywrap
 %x ARG
 %{
+#include <readline.h>
 #include <stdlib.h>
+#include <signal.h>
 #include "include/cash.h"
 #include "bison_cash.tab.h"
-#include "lib/include/linenoise.h"
 
 #define YY_INPUT(buff, result, size) result = get_input(buff, size);
 
 static int get_input(char *buff, int size)
 {
+	if (yyin != stdin) {
+		int c = getc(yyin);
+		return (c == EOF) ? YY_NULL : (buff[0] = c, 1);
+	}
+
 	char *line;
 	if (feof(yyin))
 		return YY_NULL;
-	if ((line = linenoise(PROMPT)) != NULL) {
-		if (line[0] && line[0] != ' ') {
-			linenoiseHistoryAdd(line);
-			linenoiseHistorySave("cashhistory.txt");
-		}
-		sprintf(buff, "%s\n", line);
-		free(line);
-		return strlen(buff);
-	}	
-	return YY_NULL;
+	if ((line = readline(PROMPT)) == NULL)
+		return YY_NULL;
+	
+	
+	if (line[0] && line[0] != ' ') {
+		add_history(line);
+		write_history(HISTORY);
+	}
+	sprintf(buff, "%s\n", line);
+	free(line);
+	return strlen(buff);
 }
 %}
 
@@ -59,5 +66,4 @@ exit[ \t]* { BEGIN ARG; return INTERNEX; }
 }
 <ARG>("#".*)?\n { BEGIN INITIAL; return EOL; }
 <ARG>[ \t] {} /* ignore whitespace */
-<ARG>. { printf("error\n"); }
 %%

@@ -144,13 +144,16 @@ int execute()
 
 		if (!WIFSIGNALED(status))
 			exit_code = WEXITSTATUS(status);
+		child = 0;
 	}
+	return 1;
 }
 
 int kill_child()
 {
 	if (child) {
 		kill(child, SIGKILL);
+		child = 0;
 		fprintf(stderr, "Killed by signal %d.\n", SIGINT);
 		exit_code = SIGNAL_BASE + SIGINT;
 		return 1;
