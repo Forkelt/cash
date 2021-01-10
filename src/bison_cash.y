@@ -1,21 +1,35 @@
+/*
+ * Copyright (C) 2021 Thomas Folkert Mol
+ * This work is free to be used, distributed, and modified under the terms of
+ * EUPL-1.2-or-later. If you did not receive a copy of this licence with this
+ * source code, you can find it at
+ * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * in your language of choice.
+ */
 %{
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/queue.h>
+#include "include/cash.h"
 %}
 
 %union {
 	char *str;
+	item_t *item;
 }
 
 %token INTERNCD INTERNEX
-%token REL_EXEC ABS_EXEC PAT_EXEC
+%token EXECUTAB
 %token ARGUMENT
 %token EOL
 
+%type <item> ARGUMENT args
 %%
 
 prompt:
   /* nothing */
-  | prompt command EOL { printf("end prompt\n"); }
+  | prompt command EOL { printf("%s", PROMPT); }
 ;
 
 command:
@@ -24,30 +38,26 @@ command:
 ;
 
 internal: 
-    INTERNCD args { printf("cd %s\n", yylval.str); }
+    INTERNCD args { internal_cd(yylval.str); }
   | INTERNEX args { printf("exit\n"); }
 ;
 
 executable:
-    REL_EXEC args { printf("relative\n"); }
-  | ABS_EXEC args { printf("absolute\n"); }
-  | PAT_EXEC args { printf("path\n"); }
+    EXECUTAB { pass_args(yylval.item); execute(); }
+  | EXECUTAB args { pass_args($2); execute(); }
 ;
 
 args:
-  /* nothing */
-  | args1
-;
-
-args1:
-    ARGUMENT { printf("%s\n", yylval.str); }
-  | args1 ARGUMENT { printf("%s\n", yylval.str); }
+    ARGUMENT args { $$ = $2; }
+  | ARGUMENT { $$ = yylval.item; $$->next = NULL; }
 ;
 
 %%
 
 int main(int argc, char **argv)
 {
+	cash_init();
+	printf(PROMPT);
 	yyparse();
 }
 

@@ -1,5 +1,14 @@
+/*
+ * Copyright (C) 2021 Thomas Folkert Mol
+ * This work is free to be used, distributed, and modified under the terms of
+ * EUPL-1.2-or-later. If you did not receive a copy of this licence with this
+ * source code, you can find it at
+ * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * in your language of choice.
+ */
 %x ARG
 %{
+#include "include/cash.h"
 #include "bison_cash.tab.h"
 %}
 
@@ -7,14 +16,25 @@
 
 cd[ \t]* { BEGIN ARG; return INTERNCD; }
 exit[ \t]* { BEGIN ARG; return INTERNEX; }
-"./"[A-Za-z0-9./]+ { BEGIN ARG; return REL_EXEC; }
-"/"[A-Za-z0-9./]+ { BEGIN ARG; return ABS_EXEC; }
-[A-Za-z0-9./]+ { BEGIN ARG; return PAT_EXEC; }
+[A-Za-z0-9./]+ {
+	BEGIN ARG;
+	yylval.item = malloc(sizeof(item_t));
+	yylval.item->str = strdup(yytext);
+	yylval.item->prev = NULL;
+	return EXECUTAB;
+}
 ";;" { printf("invalid ;;\n"); }
 [ \t] {} /* ignore whitespace */
-<ARG>[^ \t\n]+ { yylval.str = strdup(yytext); return ARGUMENT; }
 <ARG>";;" { BEGIN INITIAL; printf("invalid ;;\n"); return EOL; }
 <ARG>";" { BEGIN INITIAL; return EOL; }
+<ARG>[^ \t\n;]+ {
+	/* Build a reversed linked list */
+	item_t *prv = yylval.item;
+	yylval.item = malloc(sizeof(item_t)); 
+	yylval.item->str = strdup(yytext);
+	yylval.item->prev = prv;
+	return ARGUMENT; 
+}
 <ARG>\n { BEGIN INITIAL; return EOL; }
 <ARG>[ \t] {} /* ignore whitespace */
 <ARG>. { printf("error\n"); }

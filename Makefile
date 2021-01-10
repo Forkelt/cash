@@ -33,10 +33,10 @@ lib: $(LIB)
 
 yacc: flex_cash
 
-flex_cash: $(YSRC) $(LSRC)
+flex_cash: $(YSRC) $(LSRC) $(SRC) $(DEPS)
 	$(YAC) -d $(YSRC)
 	$(LEX) $(LSRC) 
-	$(CC) -o $@ bison_cash.tab.c lex.yy.c -lfl
+	$(CC) -o $@ $(SRC) bison_cash.tab.c lex.yy.c -lfl
 
 $(TARGET): $(OBJ) $(LIB)
 	$(CC) $^ -o $@
