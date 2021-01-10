@@ -9,7 +9,7 @@ CCFLAGS = -Wall -Wextra
 YAC = bison
 LEX = flex
 
-TARGET = mysh
+TARGET =
 
 SRC = $(wildcard $(SDIR)/*.c)
 OBJ = $(SRC:$(SDIR)/%.c=$(ODIR)/%.o)
@@ -24,16 +24,16 @@ LSRC = $(wildcard $(SDIR)/*.l)
 
 .PHONY: all clean lib yacc
 
-all: $(TARGET)
+all: mysh
 
 clean:
 	$(RM) $(OBJ) $(LIB) $(TARGET)
 
 lib: $(LIB)
 
-yacc: flex_cash
+yacc: mysh
 
-flex_cash: $(YSRC) $(LSRC) $(LIBSRC) $(SRC) $(DEPS) $(LDEPS)
+mysh: $(YSRC) $(LSRC) $(LIBSRC) $(SRC) $(DEPS) $(LDEPS)
 	$(YAC) -d $(YSRC)
 	$(LEX) $(LSRC) 
 	$(CC) -o $@ $(SRC) $(LIBSRC) bison_cash.tab.c lex.yy.c -lfl -I/usr/include/editline -ledit
