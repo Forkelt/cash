@@ -43,8 +43,8 @@ static int get_input(char *buff, int size)
 
 %%
 
-cd[ \t]* { BEGIN ARG; return INTERNCD; }
-exit[ \t]* { BEGIN ARG; return INTERNEX; }
+cd[ \t]* { BEGIN ARG; yylval.item = NULL; return INTERNCD; }
+exit[ \t]* { BEGIN ARG; yylval.item = NULL; return INTERNEX; }
 [A-Za-z0-9./]+ {
 	BEGIN ARG;
 	yylval.item = malloc(sizeof(item_t));
@@ -52,7 +52,7 @@ exit[ \t]* { BEGIN ARG; return INTERNEX; }
 	yylval.item->prev = NULL;
 	return EXECUTAB;
 }
-.*";"[ \t]*";".* { return SCERR; }
+.*";"[ \t]*";".* { yylval.num = yylineno; return SCERR; }
 ("#".*)?\n { return EOL; }
 [ \t] {} /* ignore whitespace */
 <ARG>";" { BEGIN INITIAL; return EOC; }

@@ -24,6 +24,7 @@ void handle_interrupt(int sig);
 %}
 
 %union {
+	int num;
 	char *str;
 	item_t *item;
 }
@@ -43,7 +44,8 @@ prompt:
   | prompt command EOL 
   | prompt command EOC
   | prompt SCERR {
-	fprintf(stderr, "error:%d: syntax error near unexpected token';'\n", 1);
+	fprintf(stderr, "error:%d: syntax error near unexpected token ';'\n",
+		yylval.num);
 	seterr(SYNTAX_ERROR); }
 ;
 
@@ -53,10 +55,24 @@ command:
 ;
 
 internal: 
-    INTERNCD { internal_cd(NULL); }
-  | INTERNCD ARGUMENT { internal_cd($2->str); free($2->str); free($2); }
-  | INTERNEX { internal_exit(NULL); }
-  | INTERNEX ARGUMENT { internal_exit($2->str); free($2->str); free($2); }
+    INTERNCD { internal_cd(0); }
+  | INTERNCD args { 
+	if (pass_args($2) > 1) {
+		fprintf(stderr, "cd: too many arguments\n");
+		seterr(1);
+	} else {
+		internal_cd(1);
+	}
+  }
+  | INTERNEX { internal_exit(0); }
+  | INTERNEX args {
+	if (pass_args($2) > 1) {
+		fprintf(stderr, "exit: too many arguments\n");
+		seterr(1);
+	} else {
+		internal_exit(1);
+	}
+  }
 ;
 
 executable:
@@ -95,7 +111,7 @@ int main(int argc, char **argv)
 		enable_error = 0;
 		yyin = fmemopen(argv[2], strlen(argv[2]), "r");
 		yyparse();
-		return 0;
+		return geterr();
 	}
 	
 	if (argc > 1) {
@@ -106,7 +122,7 @@ int main(int argc, char **argv)
 			return 1;
 		}
 		yyparse();
-		return 0;
+		return geterr();
 	}	
 
 	/* parse from readline */

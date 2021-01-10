@@ -15,12 +15,13 @@ typedef struct item {
 } item_t;
 
 void cash_init();
-int internal_cd(char *arg);
-void internal_exit(char *arg);
+int internal_cd(int use_arg);
+void internal_exit(int use_arg);
 int pass_args(item_t *head);
 void free_args(item_t *tail);
 int execute();
 int kill_child();
 void seterr(int code);
+int geterr();
 
 #endif

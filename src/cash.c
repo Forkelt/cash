@@ -16,7 +16,6 @@
 #include <linux/limits.h>
 #include <pwd.h>
 #include <string.h>
-#include "../lib/include/linenoise.h"
 #include "../include/cash.h"
 
 char prev_wd[PATH_MAX];
@@ -37,9 +36,9 @@ void cash_init()
 	exit_code = 0;
 }
 
-int internal_cd(char *arg)
+int internal_cd(int use_arg)
 {
-	if (!arg) {
+	if (!use_arg) {
 		const char *home_dir = getenv("HOME");
 		if (!home_dir)
 			home_dir = getpwuid(getuid())->pw_dir;
@@ -48,7 +47,7 @@ int internal_cd(char *arg)
 
 		strcpy(prev_wd, curr_wd);
 		strcpy(curr_wd, home_dir);
-	} else if (!strcmp(arg, "-")) {
+	} else if (!strcmp(argv[0], "-")) {
 		if (exit_code = chdir(prev_wd))
 			return 1;
 
@@ -57,7 +56,7 @@ int internal_cd(char *arg)
 		strcpy(prev_wd, curr_wd);
 		strcpy(curr_wd, temp);
 	} else {
-		if (exit_code = chdir(arg))
+		if (exit_code = chdir(argv[0]))
 			return 1;
 
 		strcpy(prev_wd, curr_wd);
@@ -68,9 +67,9 @@ int internal_cd(char *arg)
 	return 0;
 }
 
-void internal_exit(char *arg)
+void internal_exit(int use_arg)
 {
-	exit(arg ? atoi(arg) : exit_code);
+	exit(use_arg ? atoi(argv[0]) : exit_code);
 }
 
 int pass_args(item_t *head)
@@ -165,4 +164,9 @@ int kill_child()
 void seterr(int code)
 {
 	exit_code = code;
+}
+
+int geterr()
+{
+	return exit_code;
 }
