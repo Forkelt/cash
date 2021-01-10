@@ -24,10 +24,9 @@ exit[ \t]* { BEGIN ARG; return INTERNEX; }
 	yylval.item->prev = NULL;
 	return EXECUTAB;
 }
-";;" { printf("invalid ;;\n"); }
-\n { return EOL; }
+.*";"[ \t]*";".* { return SCERR; }
+("#".*)?\n { return EOL; }
 [ \t] {} /* ignore whitespace */
-<ARG>";[ \t]*;" { BEGIN INITIAL; printf("invalid ;;\n"); return EOL; }
 <ARG>";" { BEGIN INITIAL; return EOC; }
 <ARG>[^ \t\n;]+ {
 	/* Build a reversed linked list */
@@ -37,7 +36,7 @@ exit[ \t]* { BEGIN ARG; return INTERNEX; }
 	yylval.item->prev = prv;
 	return ARGUMENT; 
 }
-<ARG>\n { BEGIN INITIAL; return EOL; }
+<ARG>("#".*)?\n { BEGIN INITIAL; return EOL; }
 <ARG>[ \t] {} /* ignore whitespace */
 <ARG>. { printf("error\n"); }
 %%

@@ -4,6 +4,7 @@
 
 #define SIGNAL_BASE 128
 #define PROMPT "mysh$ "
+#define SYNTAX_ERROR 254
 
 typedef struct item {
 	struct item *next;
@@ -18,5 +19,6 @@ int pass_args(item_t *head);
 void free_args(item_t *tail);
 int execute();
 int kill_child();
+void seterr(int code);
 
 #endif

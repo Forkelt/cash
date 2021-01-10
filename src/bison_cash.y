@@ -27,7 +27,7 @@ static char **gargv;
 %token EXECUTAB
 %token ARGUMENT
 %token EOC EOL
-%token INT
+%token SCERR
 
 %type <item> ARGUMENT args
 %%
@@ -37,6 +37,9 @@ prompt:
   | prompt EOL { printf("%s", PROMPT); }
   | prompt command EOL { printf("%s", PROMPT); }
   | prompt command EOC
+  | prompt SCERR {
+	fprintf(stderr, "error:%d: syntax error near unexpected token';'\n", 1);
+	seterr(SYNTAX_ERROR); }
 ;
 
 command:

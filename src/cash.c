@@ -158,3 +158,8 @@ int kill_child()
 		return 0;
 	}
 }
+
+void seterr(int code)
+{
+	exit_code = code;
+}
