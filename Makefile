@@ -15,9 +15,9 @@ SRC = $(wildcard $(SDIR)/*.c)
 OBJ = $(SRC:$(SDIR)/%.c=$(ODIR)/%.o)
 DEPS = $(wildcard $(IDIR)/*.h)
 
-LSRC = $(wildcard $(LDIR)/$(SDIR)/*.c)
+LIBSRC = $(wildcard $(LDIR)/$(SDIR)/*.c)
 LIB = $(LSRC:$(LDIR)/$(SDIR)/%.c=$(ODIR)/%.a)
-LDEPS = $(wildcard $(LDIR)$(IDIR)/*.h)
+LIBDEPS = $(wildcard $(LDIR)$(IDIR)/*.h)
 
 YSRC = $(wildcard $(SDIR)/*.y)
 LSRC = $(wildcard $(SDIR)/*.l)
@@ -33,10 +33,10 @@ lib: $(LIB)
 
 yacc: flex_cash
 
-flex_cash: $(YSRC) $(LSRC) $(SRC) $(DEPS)
+flex_cash: $(YSRC) $(LSRC) $(LIBSRC) $(SRC) $(DEPS) $(LDEPS)
 	$(YAC) -d $(YSRC)
 	$(LEX) $(LSRC) 
-	$(CC) -o $@ $(SRC) bison_cash.tab.c lex.yy.c -lfl
+	$(CC) -o $@ $(SRC) $(LIBSRC) bison_cash.tab.c lex.yy.c -lfl
 
 $(TARGET): $(OBJ) $(LIB)
 	$(CC) $^ -o $@

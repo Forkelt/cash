@@ -14,6 +14,7 @@
 #include <signal.h>
 #include <sys/queue.h>
 #include "include/cash.h"
+#include "lib/include/linenoise.h"
 
 static char **gargv;
 %}
@@ -34,8 +35,8 @@ static char **gargv;
 
 prompt:
   /* nothing */
-  | prompt EOL { printf("%s", PROMPT); }
-  | prompt command EOL { printf("%s", PROMPT); }
+  | prompt EOL 
+  | prompt command EOL 
   | prompt command EOC
   | prompt SCERR {
 	fprintf(stderr, "error:%d: syntax error near unexpected token';'\n", 1);
@@ -88,7 +89,9 @@ int main(int argc, char **argv)
 	sigaction(SIGINT, &inthandler, 0);
 	
 	cash_init();
-	printf(PROMPT);
+
+	/* parse from linenoise */
+	linenoiseHistoryLoad("cashhistory.txt");
 	yyparse();
 }
 

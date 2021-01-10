@@ -9,8 +9,29 @@
 %option noyywrap
 %x ARG
 %{
+#include <stdlib.h>
 #include "include/cash.h"
 #include "bison_cash.tab.h"
+#include "lib/include/linenoise.h"
+
+#define YY_INPUT(buff, result, size) result = get_input(buff, size);
+
+static int get_input(char *buff, int size)
+{
+	char *line;
+	if (feof(yyin))
+		return YY_NULL;
+	if ((line = linenoise(PROMPT)) != NULL) {
+		if (line[0] && line[0] != ' ') {
+			linenoiseHistoryAdd(line);
+			linenoiseHistorySave("cashhistory.txt");
+		}
+		sprintf(buff, "%s\n", line);
+		free(line);
+		return strlen(buff);
+	}	
+	return YY_NULL;
+}
 %}
 
 %%

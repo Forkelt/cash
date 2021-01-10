@@ -1,5 +1,6 @@
 mysh
 flex_cash
+cashhistory.txt
 *.o
 *.a
 *.tab.c
