@@ -6,6 +6,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * in your language of choice.
  */
+%option noyywrap
 %x ARG
 %{
 #include "include/cash.h"
@@ -24,9 +25,10 @@ exit[ \t]* { BEGIN ARG; return INTERNEX; }
 	return EXECUTAB;
 }
 ";;" { printf("invalid ;;\n"); }
+\n { return EOL; }
 [ \t] {} /* ignore whitespace */
-<ARG>";;" { BEGIN INITIAL; printf("invalid ;;\n"); return EOL; }
-<ARG>";" { BEGIN INITIAL; return EOL; }
+<ARG>";[ \t]*;" { BEGIN INITIAL; printf("invalid ;;\n"); return EOL; }
+<ARG>";" { BEGIN INITIAL; return EOC; }
 <ARG>[^ \t\n;]+ {
 	/* Build a reversed linked list */
 	item_t *prv = yylval.item;
