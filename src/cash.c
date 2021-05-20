@@ -13,7 +13,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <linux/limits.h>
+#include <limits.h>
 #include <pwd.h>
 #include <string.h>
 #include "../include/cash.h"
