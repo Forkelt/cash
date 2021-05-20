@@ -26,6 +26,9 @@ char **argv;
 int child;
 int exit_code;
 
+fdqitem_t *fdqhead = NULL;
+fdqitem_t *fdqtail = NULL;
+
 void cash_init()
 {
 	getcwd(curr_wd, PATH_MAX);
@@ -70,6 +73,40 @@ int internal_cd(int use_arg)
 void internal_exit(int use_arg)
 {
 	exit(use_arg ? atoi(argv[0]) : exit_code);
+}
+
+/*
+ * TODO: Error checking on pipe() and malloc()
+ * Note that the linked list might not actually be necessary, depending on the
+ * rest of the implementation of pipes. Revisit.
+ */
+void pass_pipe()
+{
+	int pipefd[2];
+
+	pipe(pipefd);
+
+	/*
+	 * Every process gets two FDs, one for input and one for output.
+	 * The first command (generally) gets stdin as input, and the last
+	 * stdout as output. The fdq represents a queue with both input and
+	 * output for each command in the prompt.
+	 */
+	fdqitem_t *newin = malloc(sizeof(fdqitem_t));
+	newin->infd = pipefd[0];
+	newin->outfd = STDOUT_FILENO;
+	newin->next = NULL;
+
+	if (!fdqhead) {
+		fdqhead = malloc(sizeof(fdqitem_t));
+		fdqhead->infd = STDIN_FILENO;
+		fdqhead->outfd = pipefd[1];
+		fdqtail = fdqhead;
+	} else {
+		fdqtail->outfd = pipefd[1];
+	}
+	fdqtail->next = newin;
+	fdqtail = fdqtail->next;
 }
 
 int pass_args(item_t *head)

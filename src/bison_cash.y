@@ -33,6 +33,7 @@ void handle_interrupt(int sig);
 %token EXECUTAB
 %token ARGUMENT
 %token EOC EOL
+%token PIPE
 %token SCERR
 
 %type <item> ARGUMENT args
@@ -43,6 +44,7 @@ prompt:
   | prompt EOL 
   | prompt command EOL 
   | prompt command EOC
+  | prompt command PIPE { pass_pipe(); }
   | prompt SCERR {
 	fprintf(stderr, "error:%d: syntax error near unexpected token ';'\n",
 		yylval.num);

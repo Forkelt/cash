@@ -56,6 +56,7 @@ exit[ \t]* { BEGIN ARG; yylval.item = NULL; return INTERNEX; }
 ("#".*)?\n { return EOL; }
 [ \t] {} /* ignore whitespace */
 <ARG>";" { BEGIN INITIAL; return EOC; }
+<ARG>"|" { BEGIN INITIAL; return PIPE; }
 <ARG>[^ \t\n;]+ {
 	/* Build a reversed linked list */
 	item_t *prv = yylval.item;
