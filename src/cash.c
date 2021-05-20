@@ -160,18 +160,36 @@ void free_args(item_t *tail)
 
 int execute()
 {
+	int inputfd = STDIN_FILENO;
+	int outputfd = STDOUT_FILENO;
+	if (fdqhead) {
+		inputfd = fdqhead->infd;
+		outputfd = fdqhead->outfd;
+		fdqitem_t *old = fdqhead;
+		fdqhead = fdqhead->next;
+		free(old);
+	}
+
 	if (!argc)
 		return 0;
 
 	int pid = fork();
 	if (pid == 0) { /* child */
+		dup2(inputfd, STDIN_FILENO);
+		dup2(outputfd, STDOUT_FILENO);
+
 		execvp(argv[0], argv);
 		fprintf(stderr, "%s: No such file or directory\n", argv[0]);
 		exit(127);
 	} else {
 		int status;
 		child = pid;
-		if (waitpid(child, &status, 0) < 0) {
+		int wait = waitpid(child, &status, 0);
+		if (inputfd != STDIN_FILENO)
+			close(inputfd);
+		if (outputfd != STDOUT_FILENO)
+			close(outputfd);
+		if (wait < 0) {
 			if (errno == EINTR) {
 				child = 0;
 				return 1;
