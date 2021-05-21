@@ -39,8 +39,27 @@ void cash_init()
 	exit_code = 0;
 }
 
+void set_file_descriptors(int *input, int *output)
+{
+	if (fdqhead) {
+		*input = fdqhead->infd;
+		*output = fdqhead->outfd;
+		fdqitem_t *old = fdqhead;
+		fdqhead = fdqhead->next;
+		free(old);
+		return;
+	}
+
+	*input = STDIN_FILENO;
+	*output = STDOUT_FILENO;
+}
+
 int internal_cd(int use_arg)
 {
+	int inputfd;
+	int outputfd;
+	set_file_descriptors(&inputfd, &outputfd);
+
 	if (!use_arg) {
 		const char *home_dir = getenv("HOME");
 		if (!home_dir)
@@ -54,7 +73,7 @@ int internal_cd(int use_arg)
 		if (exit_code = chdir(prev_wd))
 			return 1;
 
-		printf("%s\n", prev_wd);
+		dprintf(outputfd, "%s\n", prev_wd);
 		char *temp = prev_wd;
 		strcpy(prev_wd, curr_wd);
 		strcpy(curr_wd, temp);
@@ -72,6 +91,11 @@ int internal_cd(int use_arg)
 
 void internal_exit(int use_arg)
 {
+	/*
+	 * While it might make sense to dequeue the pipe file descriptors here,
+	 * there's no real need since the program will exit now and we can let
+	 * the kernel clean up the memory for us.
+	 */
 	exit(use_arg ? atoi(argv[0]) : exit_code);
 }
 
@@ -160,15 +184,9 @@ void free_args(item_t *tail)
 
 int execute()
 {
-	int inputfd = STDIN_FILENO;
-	int outputfd = STDOUT_FILENO;
-	if (fdqhead) {
-		inputfd = fdqhead->infd;
-		outputfd = fdqhead->outfd;
-		fdqitem_t *old = fdqhead;
-		fdqhead = fdqhead->next;
-		free(old);
-	}
+	int inputfd;
+	int outputfd;
+	set_file_descriptors(&inputfd, &outputfd);
 
 	if (!argc)
 		return 0;
