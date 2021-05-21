@@ -30,7 +30,6 @@ static int get_input(char *buff, int size)
 	if ((line = readline(PROMPT)) == NULL)
 		return YY_NULL;
 	
-	
 	if (line[0] && line[0] != ' ') {
 		add_history(line);
 		write_history(HISTORY);

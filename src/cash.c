@@ -29,6 +29,9 @@ int exit_code;
 fdqitem_t *fdqhead = NULL;
 fdqitem_t *fdqtail = NULL;
 
+child_process_t *cpqhead = NULL;
+child_process_t *cpqtail = NULL;
+
 void cash_init()
 {
 	getcwd(curr_wd, PATH_MAX);
@@ -44,14 +47,13 @@ void set_file_descriptors(int *input, int *output)
 	if (fdqhead) {
 		*input = fdqhead->infd;
 		*output = fdqhead->outfd;
-		fdqitem_t *old = fdqhead;
+		fdqitem_t *tmp = fdqhead;
 		fdqhead = fdqhead->next;
-		free(old);
-		return;
+		free(tmp);
+	} else {
+		*input = STDIN_FILENO;
+		*output = STDOUT_FILENO;
 	}
-
-	*input = STDIN_FILENO;
-	*output = STDOUT_FILENO;
 }
 
 int internal_cd()
@@ -144,6 +146,31 @@ void pass_pipe()
 	fdqtail = fdqtail->next;
 }
 
+void wait_pipe()
+{
+	while (cpqhead) {
+		int status;
+		int wait = waitpid(cpqhead->pid, &status, 0);
+		child_process_t *tmp = cpqhead;
+		cpqhead = cpqhead->next;
+		free(tmp);
+	}
+	cpqtail = NULL;
+}
+
+/* TODO: Fix race condition with wait_pipe() */
+void kill_pipe()
+{
+	while (cpqhead) {
+		kill(cpqhead->pid, SIGKILL);
+		child_process_t *tmp = cpqhead;
+		cpqhead = cpqhead->next;
+		free(tmp);
+	}
+	cpqtail = NULL;
+}
+
+
 int pass_args(item_t *head)
 {
 	if (!head)
@@ -193,7 +220,7 @@ void free_args(item_t *tail)
 	}
 }
 
-int execute()
+int execute(int use_pipe)
 {
 	if (!argc)
 		return 0;
@@ -213,18 +240,40 @@ int execute()
 	if (pid == 0) { /* child */
 		dup2(inputfd, STDIN_FILENO);
 		dup2(outputfd, STDOUT_FILENO);
-
-		execvp(argv[0], argv);
-		fprintf(stderr, "%s: No such file or directory\n", argv[0]);
-		exit(127);
-	} else {
-		int status;
-		child = pid;
-		int wait = waitpid(child, &status, 0);
 		if (inputfd != STDIN_FILENO)
 			close(inputfd);
 		if (outputfd != STDOUT_FILENO)
 			close(outputfd);
+
+		execvp(argv[0], argv);
+		fprintf(stderr, "%s: No such file or directory\n", argv[0]);
+		exit(127);
+	} else if (use_pipe) { /* parent of piped process */
+		if (inputfd != STDIN_FILENO)
+			close(inputfd);
+		if (outputfd != STDOUT_FILENO)
+			close(outputfd);
+
+		/* Add child to waiting queue */
+		child_process_t *new_child = malloc(sizeof(child_process_t));
+		new_child->next = NULL;
+		new_child->pid = pid;
+
+		if (cpqtail)
+			cpqtail->next = new_child;
+		else
+			cpqhead = new_child;
+		cpqtail = new_child;
+	} else { /* parent of single process or last process in pipe */
+		if (inputfd != STDIN_FILENO)
+			close(inputfd);
+		if (outputfd != STDOUT_FILENO)
+			close(outputfd);
+
+		int status;
+		child = pid;
+		wait_pipe(); /* Order is essential, close pipe before tail. */
+		int wait = waitpid(child, &status, 0);
 		if (wait < 0) {
 			if (errno == EINTR) {
 				child = 0;
@@ -241,6 +290,7 @@ int execute()
 
 int kill_child()
 {
+	kill_pipe();
 	if (child) {
 		kill(child, SIGKILL);
 		child = 0;

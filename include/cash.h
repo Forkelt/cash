@@ -20,11 +20,16 @@ typedef struct fdqitem {
 	int outfd;
 } fdqitem_t;
 
+typedef struct child_process {
+	struct child_process *next;
+	pid_t pid;
+} child_process_t;
+
 void cash_init();
 void pass_pipe();
 int pass_args(item_t *head);
 void free_args(item_t *tail);
-int execute();
+int execute(int use_pipe);
 int kill_child();
 void seterr(int code);
 int geterr();

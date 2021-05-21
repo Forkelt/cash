@@ -42,9 +42,9 @@ void handle_interrupt(int sig);
 prompt:
   /* nothing */
   | prompt EOL
-  | prompt command EOL { execute(); }
-  | prompt command EOC { execute(); }
-  | prompt command PIPE { pass_pipe(); execute(); }
+  | prompt command EOL { execute(0); }
+  | prompt command EOC { execute(0); }
+  | prompt command PIPE { pass_pipe(); execute(1); }
   | prompt SCERR {
 	fprintf(stderr, "error:%d: syntax error near unexpected token ';'\n",
 		yylval.num);
