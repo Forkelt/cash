@@ -21,8 +21,6 @@ typedef struct fdqitem {
 } fdqitem_t;
 
 void cash_init();
-int internal_cd(int use_arg);
-void internal_exit(int use_arg);
 void pass_pipe();
 int pass_args(item_t *head);
 void free_args(item_t *tail);

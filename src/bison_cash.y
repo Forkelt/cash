@@ -30,7 +30,7 @@ void handle_interrupt(int sig);
 }
 
 %token INTERNCD INTERNEX
-%token EXECUTAB
+%token COMMAND
 %token ARGUMENT
 %token EOC EOL
 %token PIPE
@@ -52,34 +52,8 @@ prompt:
 ;
 
 command:
-    internal
-  | executable
-;
-
-internal: 
-    INTERNCD { internal_cd(0); }
-  | INTERNCD args { 
-	if (pass_args($2) > 1) {
-		fprintf(stderr, "cd: too many arguments\n");
-		seterr(1);
-	} else {
-		internal_cd(1);
-	}
-  }
-  | INTERNEX { internal_exit(0); }
-  | INTERNEX args {
-	if (pass_args($2) > 1) {
-		fprintf(stderr, "exit: too many arguments\n");
-		seterr(1);
-	} else {
-		internal_exit(1);
-	}
-  }
-;
-
-executable:
-    EXECUTAB { pass_args(yylval.item); }
-  | EXECUTAB args { pass_args($2); }
+    COMMAND { pass_args(yylval.item); }
+  | COMMAND args { pass_args($2); }
 ;
 
 args:

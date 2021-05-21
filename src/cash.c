@@ -54,13 +54,19 @@ void set_file_descriptors(int *input, int *output)
 	*output = STDOUT_FILENO;
 }
 
-int internal_cd(int use_arg)
+int internal_cd()
 {
 	int inputfd;
 	int outputfd;
 	set_file_descriptors(&inputfd, &outputfd);
 
-	if (!use_arg) {
+	if (argc > 2) {
+		fprintf(stderr, "cd: too many arguments\n");
+		seterr(1);
+		return 1;
+	}
+
+	if (argc < 2) {
 		const char *home_dir = getenv("HOME");
 		if (!home_dir)
 			home_dir = getpwuid(getuid())->pw_dir;
@@ -69,7 +75,7 @@ int internal_cd(int use_arg)
 
 		strcpy(prev_wd, curr_wd);
 		strcpy(curr_wd, home_dir);
-	} else if (!strcmp(argv[0], "-")) {
+	} else if (!strcmp(argv[1], "-")) {
 		if (exit_code = chdir(prev_wd))
 			return 1;
 
@@ -78,7 +84,7 @@ int internal_cd(int use_arg)
 		strcpy(prev_wd, curr_wd);
 		strcpy(curr_wd, temp);
 	} else {
-		if (exit_code = chdir(argv[0]))
+		if (exit_code = chdir(argv[1]))
 			return 1;
 
 		strcpy(prev_wd, curr_wd);
@@ -89,14 +95,19 @@ int internal_cd(int use_arg)
 	return 0;
 }
 
-void internal_exit(int use_arg)
+void internal_exit()
 {
 	/*
 	 * While it might make sense to dequeue the pipe file descriptors here,
 	 * there's no real need since the program will exit now and we can let
 	 * the kernel clean up the memory for us.
 	 */
-	exit(use_arg ? atoi(argv[0]) : exit_code);
+	if (argc > 2) {
+		fprintf(stderr, "exit: too many arguments\n");
+		seterr(1);
+		return;
+	}
+	exit(argc > 1 ? atoi(argv[0]) : exit_code);
 }
 
 /*
@@ -184,12 +195,19 @@ void free_args(item_t *tail)
 
 int execute()
 {
+	if (!argc)
+		return 0;
+
+	if (!strcmp(argv[0], "cd"))
+		return internal_cd();
+	if (!strcmp(argv[0], "exit")) {
+		internal_exit();
+		return 0; /* Reachable */
+	}
+
 	int inputfd;
 	int outputfd;
 	set_file_descriptors(&inputfd, &outputfd);
-
-	if (!argc)
-		return 0;
 
 	int pid = fork();
 	if (pid == 0) { /* child */
