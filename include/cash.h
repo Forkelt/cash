@@ -14,12 +14,6 @@ typedef struct item {
 	char *str;
 } item_t;
 
-typedef struct fdqitem {
-	struct fdqitem *next;
-	int infd;
-	int outfd;
-} fdqitem_t;
-
 typedef struct child_process {
 	struct child_process *next;
 	pid_t pid;
@@ -28,6 +22,8 @@ typedef struct child_process {
 void cash_init();
 int pass_args(item_t *head);
 void free_args(item_t *tail);
+void set_redirect_input(char *path);
+void set_redirect_output(char *path, int append);
 int execute(int use_pipe);
 int kill_child();
 void seterr(int code);

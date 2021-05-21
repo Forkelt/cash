@@ -33,9 +33,11 @@ void handle_interrupt(int sig);
 %token COMMAND
 %token ARGUMENT
 %token EOC EOL
+%token READFROM WRITETO APPENDTO
 %token PIPE
 %token SCERR
 
+%type <item> COMMAND command
 %type <item> ARGUMENT args
 %%
 
@@ -54,13 +56,21 @@ prompt:
 command:
     COMMAND { pass_args(yylval.item); }
   | COMMAND args { pass_args($2); }
+  | COMMAND redirect { pass_args($1); }
 ;
 
 args:
     ARGUMENT args { $$ = $2; }
+  | redirect args { $$ = $2; }
+  | ARGUMENT redirect { $$ = $1; }
   | ARGUMENT { $$ = yylval.item; $$->next = NULL; }
 ;
 
+redirect:
+    READFROM { set_redirect_input(yylval.str); free(yylval.str); }
+  | WRITETO { set_redirect_output(yylval.str, 0); free(yylval.str); }
+  | APPENDTO { set_redirect_output(yylval.str, 1); free(yylval.str); }
+;
 %%
 
 void handle_interrupt(int sig)

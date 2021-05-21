@@ -8,6 +8,9 @@
  */
 %option noyywrap
 %x ARG
+%x REDIRIN
+%x REDIRAPP
+%x REDIROUT
 %{
 #include <readline.h>
 #include <stdlib.h>
@@ -16,6 +19,8 @@
 #include "bison_cash.tab.h"
 
 #define YY_INPUT(buff, result, size) result = get_input(buff, size);
+
+item_t *prev_arg;
 
 static int get_input(char *buff, int size)
 {
@@ -47,6 +52,7 @@ static int get_input(char *buff, int size)
 	yylval.item = malloc(sizeof(item_t));
 	yylval.item->str = strdup(yytext);
 	yylval.item->prev = NULL;
+	prev_arg = yylval.item;
 	return COMMAND;
 }
 .*";"[ \t]*";".* { yylval.num = yylineno; return SCERR; }
@@ -54,9 +60,12 @@ static int get_input(char *buff, int size)
 [ \t] {} /* ignore whitespace */
 <ARG>";" { BEGIN INITIAL; return EOC; }
 <ARG>"|" { BEGIN INITIAL; return PIPE; }
-<ARG>[^ \t\n;]+ {
+<ARG>"<"[ \t]* { BEGIN REDIRIN; }
+<ARG>">>"[ \t]* { BEGIN REDIRAPP; }
+<ARG>">"[ \t]* { BEGIN REDIROUT; }
+<ARG>[^ ><\t\n;]+ {
 	/* Build a reversed linked list */
-	item_t *prv = yylval.item;
+	item_t *prv = prev_arg;
 	yylval.item = malloc(sizeof(item_t)); 
 	yylval.item->str = strdup(yytext);
 	yylval.item->prev = prv;
@@ -64,4 +73,19 @@ static int get_input(char *buff, int size)
 }
 <ARG>("#".*)?\n { BEGIN INITIAL; return EOL; }
 <ARG>[ \t] {} /* ignore whitespace */
+<REDIRIN>[^ \t\n;]* { 
+	BEGIN ARG; 
+	yylval.str = strdup(yytext); 
+	return READFROM; 
+}
+<REDIRAPP>[^ \t\n;]* {
+	BEGIN ARG;
+	yylval.str = strdup(yytext);
+	return APPENDTO;
+}
+<REDIROUT>[^ \t\n;]* {
+	BEGIN ARG;
+	yylval.str = strdup(yytext);
+	return WRITETO;
+}
 %%

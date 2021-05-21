@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <limits.h>
@@ -27,9 +28,8 @@ int child;
 int exit_code;
 
 int pipe_input = STDIN_FILENO;
-
-fdqitem_t *fdqhead = NULL;
-fdqitem_t *fdqtail = NULL;
+int redir_input = 0;
+int redir_output = 0;
 
 child_process_t *cpqhead = NULL;
 child_process_t *cpqtail = NULL;
@@ -42,20 +42,6 @@ void cash_init()
 	argv = NULL;
 	child = 0;
 	exit_code = 0;
-}
-
-void set_file_descriptors(int *input, int *output)
-{
-	if (fdqhead) {
-		*input = fdqhead->infd;
-		*output = fdqhead->outfd;
-		fdqitem_t *tmp = fdqhead;
-		fdqhead = fdqhead->next;
-		free(tmp);
-	} else {
-		*input = STDIN_FILENO;
-		*output = STDOUT_FILENO;
-	}
 }
 
 int internal_cd(int outputfd)
@@ -132,6 +118,24 @@ void kill_pipe()
 	}
 }
 
+/* TODO: Error checking */
+void set_redirect_input(char *path)
+{
+	if (redir_input)
+		close(redir_input);
+	redir_input = open(path, O_RDONLY);
+}
+
+/* TODO: Error checking */
+void set_redirect_output(char *path, int append)
+{
+	if (redir_output)
+		close(redir_output);
+	if (append)
+		redir_output = open(path, O_WRONLY | O_CREAT | O_APPEND, S_IRWXU);
+	else
+		redir_output = open(path, O_WRONLY | O_CREAT, S_IRWXU);
+}
 
 int pass_args(item_t *head)
 {
@@ -194,6 +198,18 @@ int execute(int use_pipe)
 		pipe(pipefd);
 		pipe_input = pipefd[0];
 		outputfd = pipefd[1];
+	}
+	if (redir_input) {
+		if (inputfd != STDIN_FILENO)
+			close(inputfd);
+		inputfd = redir_input;
+		redir_input = 0;
+	}
+	if (redir_output) {
+		if (outputfd != STDOUT_FILENO)
+			close(outputfd);
+		outputfd = redir_output;
+		redir_output = 0;
 	}
 
 
