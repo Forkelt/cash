@@ -158,16 +158,19 @@ void wait_pipe()
 	cpqtail = NULL;
 }
 
-/* TODO: Fix race condition with wait_pipe() */
 void kill_pipe()
 {
-	while (cpqhead) {
-		kill(cpqhead->pid, SIGKILL);
-		child_process_t *tmp = cpqhead;
-		cpqhead = cpqhead->next;
-		free(tmp);
+	/*
+	 * We can't directly manipulate cpqhead or free the list because
+	 * wait_pipe() might be running. At the same time, we can depend on
+	 * wait_pipe() to clean up for us once the killing ends so it's fine.
+	 */
+	child_process_t *i = cpqhead;
+	while (i) {
+		kill(i->pid, SIGKILL);
+		child_process_t *tmp = i;
+		i = i->next;
 	}
-	cpqtail = NULL;
 }
 
 
