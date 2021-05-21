@@ -26,7 +26,6 @@ typedef struct child_process {
 } child_process_t;
 
 void cash_init();
-void pass_pipe();
 int pass_args(item_t *head);
 void free_args(item_t *tail);
 int execute(int use_pipe);

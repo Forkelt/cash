@@ -44,7 +44,7 @@ prompt:
   | prompt EOL
   | prompt command EOL { execute(0); }
   | prompt command EOC { execute(0); }
-  | prompt command PIPE { pass_pipe(); execute(1); }
+  | prompt command PIPE { execute(1); }
   | prompt SCERR {
 	fprintf(stderr, "error:%d: syntax error near unexpected token ';'\n",
 		yylval.num);

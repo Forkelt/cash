@@ -26,6 +26,8 @@ char **argv;
 int child;
 int exit_code;
 
+int pipe_input = STDIN_FILENO;
+
 fdqitem_t *fdqhead = NULL;
 fdqitem_t *fdqtail = NULL;
 
@@ -56,12 +58,8 @@ void set_file_descriptors(int *input, int *output)
 	}
 }
 
-int internal_cd()
+int internal_cd(int outputfd)
 {
-	int inputfd;
-	int outputfd;
-	set_file_descriptors(&inputfd, &outputfd);
-
 	if (argc > 2) {
 		fprintf(stderr, "cd: too many arguments\n");
 		seterr(1);
@@ -99,51 +97,12 @@ int internal_cd()
 
 void internal_exit()
 {
-	/*
-	 * While it might make sense to dequeue the pipe file descriptors here,
-	 * there's no real need since the program will exit now and we can let
-	 * the kernel clean up the memory for us.
-	 */
 	if (argc > 2) {
 		fprintf(stderr, "exit: too many arguments\n");
 		seterr(1);
 		return;
 	}
 	exit(argc > 1 ? atoi(argv[0]) : exit_code);
-}
-
-/*
- * TODO: Error checking on pipe() and malloc()
- * Note that the linked list might not actually be necessary, depending on the
- * rest of the implementation of pipes. Revisit.
- */
-void pass_pipe()
-{
-	int pipefd[2];
-
-	pipe(pipefd);
-
-	/*
-	 * Every process gets two FDs, one for input and one for output.
-	 * The first command (generally) gets stdin as input, and the last
-	 * stdout as output. The fdq represents a queue with both input and
-	 * output for each command in the prompt.
-	 */
-	fdqitem_t *newin = malloc(sizeof(fdqitem_t));
-	newin->infd = pipefd[0];
-	newin->outfd = STDOUT_FILENO;
-	newin->next = NULL;
-
-	if (!fdqhead) {
-		fdqhead = malloc(sizeof(fdqitem_t));
-		fdqhead->infd = STDIN_FILENO;
-		fdqhead->outfd = pipefd[1];
-		fdqtail = fdqhead;
-	} else {
-		fdqtail->outfd = pipefd[1];
-	}
-	fdqtail->next = newin;
-	fdqtail = fdqtail->next;
 }
 
 void wait_pipe()
@@ -228,16 +187,22 @@ int execute(int use_pipe)
 	if (!argc)
 		return 0;
 
+	int inputfd = pipe_input;
+	int outputfd = STDOUT_FILENO;
+	if (use_pipe) {
+		int pipefd[2];
+		pipe(pipefd);
+		pipe_input = pipefd[0];
+		outputfd = pipefd[1];
+	}
+
+
 	if (!strcmp(argv[0], "cd"))
-		return internal_cd();
+		return internal_cd(outputfd);
 	if (!strcmp(argv[0], "exit")) {
 		internal_exit();
 		return 0; /* Reachable */
 	}
-
-	int inputfd;
-	int outputfd;
-	set_file_descriptors(&inputfd, &outputfd);
 
 	int pid = fork();
 	if (pid == 0) { /* child */
@@ -276,6 +241,7 @@ int execute(int use_pipe)
 		int status;
 		child = pid;
 		wait_pipe(); /* Order is essential, close pipe before tail. */
+		pipe_input = STDIN_FILENO; /* Next command uses stdin again */
 		int wait = waitpid(child, &status, 0);
 		if (wait < 0) {
 			if (errno == EINTR) {
