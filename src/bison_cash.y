@@ -56,14 +56,20 @@ prompt:
 command:
     COMMAND { pass_args(yylval.item); }
   | COMMAND args { pass_args($2); }
-  | COMMAND redirect { pass_args($1); }
+  | COMMAND redirects { pass_args($1); }
+  | COMMAND redirects args { pass_args($3); }
 ;
 
 args:
     ARGUMENT args { $$ = $2; }
-  | redirect args { $$ = $2; }
-  | ARGUMENT redirect { $$ = $1; }
   | ARGUMENT { $$ = yylval.item; $$->next = NULL; }
+  | ARGUMENT redirects { $$ = $1; $$->next = NULL; }
+  | ARGUMENT redirects args { $$ = $3; }
+;
+
+redirects:
+    redirect
+  | redirects redirect
 ;
 
 redirect:
