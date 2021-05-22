@@ -29,7 +29,16 @@ static int get_input(char *buff, int size)
 {
 	if (yyin != stdin) {
 		int c = getc(yyin);
-		return (c == EOF) ? YY_NULL : (buff[0] = c, 1);
+		if (c == EOF)
+			return YY_NULL;
+		buff[0] = c;
+		int read_ahead = getc(yyin);
+		if (read_ahead == EOF) {
+			buff[1] = '\n'; /* Ensure end is detected by parser */
+			return 2;
+		}
+		ungetc(read_ahead, yyin);
+		return 1;
 	}
 
 	char *line;
