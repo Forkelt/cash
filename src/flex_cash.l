@@ -72,10 +72,10 @@ static int get_input(char *buff, int size)
 <ARG>">"[ \t]* { BEGIN ARGREDOU; }
 <ARG>[^ ><\t\n;]+ {
 	/* Build a reversed linked list */
-	item_t *prv = prev_arg;
 	yylval.item = malloc(sizeof(item_t)); 
 	yylval.item->str = strdup(yytext);
-	yylval.item->prev = prv;
+	yylval.item->prev = prev_arg;
+	prev_arg = yylval.item;
 	return ARGUMENT; 
 }
 <ARG>("#".*)?\n { BEGIN INITIAL; return EOL; }
