@@ -70,7 +70,9 @@ static int get_input(char *buff, int size)
 	prev_arg = yylval.item;
 	return COMMAND;
 }
-.*";"[ \t]*";".* { yylval.num = yylineno; return SCERR; }
+.*";"[ \t]*";".*\n? { yylval.num = yylineno; return SCERR; } /* match ;; */
+.*"|"[ \t]*"|".*\n? { yylval.num = yylineno; return PPERR; } /* match || */
+.*[><]{3,}.* { yylval.num == yylineno; return SNERR; } /* match invalid redirects */
 ("#".*)?\n { return EOL; }
 [ \t] {} /* ignore whitespace */
 

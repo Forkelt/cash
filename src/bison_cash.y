@@ -35,7 +35,7 @@ void handle_interrupt(int sig);
 %token EOC EOL
 %token READFROM WRITETO APPENDTO
 %token PIPE
-%token SCERR
+%token SCERR PPERR SNERR
 
 %type <item> COMMAND command
 %type <item> ARGUMENT args
@@ -47,10 +47,7 @@ prompt:
   | prompt redircommand EOL { execute(0); }
   | prompt redircommand EOC { execute(0); }
   | prompt redircommand PIPE { execute(1); }
-  | prompt SCERR {
-	fprintf(stderr, "error:%d: syntax error near unexpected token ';'\n",
-		yylval.num);
-	seterr(SYNTAX_ERROR); }
+  | prompt syntax_error { seterr(SYNTAX_ERROR); }
 ;
 
 redircommand:
@@ -82,6 +79,11 @@ redirect:
   | WRITETO { set_redirect_output(yylval.str, 0); free(yylval.str); }
   | APPENDTO { set_redirect_output(yylval.str, 1); free(yylval.str); }
 ;
+
+syntax_error:
+    SCERR{ fprintf(stderr, "error:%i: syntax error near unexpected token ';'\n", yylval.num); }
+  | PPERR { fprintf(stderr, "error:%i: syntax error near unexpected token '|'\n", yylval.num); }
+  | SNERR { fprintf(stderr, "error:%i: syntax error\n", yylval.num); }
 %%
 
 void handle_interrupt(int sig)
