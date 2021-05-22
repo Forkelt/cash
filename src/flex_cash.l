@@ -8,9 +8,12 @@
  */
 %option noyywrap
 %x ARG
-%x REDIRIN
-%x REDIRAPP
-%x REDIROUT
+%x INIREDIN
+%x INIREDAP
+%x INIREDOU
+%x ARGREDIN
+%x ARGREDAP
+%x ARGREDOU
 %{
 #include <readline.h>
 #include <stdlib.h>
@@ -47,6 +50,9 @@ static int get_input(char *buff, int size)
 
 %%
 
+"<"[ \t]* { BEGIN INIREDIN; }
+">>"[ \t]* { BEGIN INIREDAP; }
+">"[ \t]* { BEGIN INIREDOU; }
 [A-Za-z0-9./]+ {
 	BEGIN ARG;
 	yylval.item = malloc(sizeof(item_t));
@@ -58,11 +64,12 @@ static int get_input(char *buff, int size)
 .*";"[ \t]*";".* { yylval.num = yylineno; return SCERR; }
 ("#".*)?\n { return EOL; }
 [ \t] {} /* ignore whitespace */
+
 <ARG>";" { BEGIN INITIAL; return EOC; }
 <ARG>"|" { BEGIN INITIAL; return PIPE; }
-<ARG>"<"[ \t]* { BEGIN REDIRIN; }
-<ARG>">>"[ \t]* { BEGIN REDIRAPP; }
-<ARG>">"[ \t]* { BEGIN REDIROUT; }
+<ARG>"<"[ \t]* { BEGIN ARGREDIN; }
+<ARG>">>"[ \t]* { BEGIN ARGREDAP; }
+<ARG>">"[ \t]* { BEGIN ARGREDOU; }
 <ARG>[^ ><\t\n;]+ {
 	/* Build a reversed linked list */
 	item_t *prv = prev_arg;
@@ -73,17 +80,34 @@ static int get_input(char *buff, int size)
 }
 <ARG>("#".*)?\n { BEGIN INITIAL; return EOL; }
 <ARG>[ \t] {} /* ignore whitespace */
-<REDIRIN>[^ \t\n;]* { 
+
+<INIREDIN>[^ \t\n;]* { 
+	BEGIN INITIAL;
+	yylval.str = strdup(yytext); 
+	return READFROM; 
+}
+<INIREDAP>[^ \t\n;]* {
+	BEGIN INITIAL;
+	yylval.str = strdup(yytext);
+	return APPENDTO;
+}
+<INIREDOU>[^ \t\n;]* {
+	BEGIN INITIAL;
+	yylval.str = strdup(yytext);
+	return WRITETO;
+}
+
+<ARGREDIN>[^ \t\n;]* { 
 	BEGIN ARG; 
 	yylval.str = strdup(yytext); 
 	return READFROM; 
 }
-<REDIRAPP>[^ \t\n;]* {
+<ARGREDAP>[^ \t\n;]* {
 	BEGIN ARG;
 	yylval.str = strdup(yytext);
 	return APPENDTO;
 }
-<REDIROUT>[^ \t\n;]* {
+<ARGREDOU>[^ \t\n;]* {
 	BEGIN ARG;
 	yylval.str = strdup(yytext);
 	return WRITETO;

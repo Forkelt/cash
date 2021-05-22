@@ -44,13 +44,18 @@ void handle_interrupt(int sig);
 prompt:
   /* nothing */
   | prompt EOL
-  | prompt command EOL { execute(0); }
-  | prompt command EOC { execute(0); }
-  | prompt command PIPE { execute(1); }
+  | prompt redircommand EOL { execute(0); }
+  | prompt redircommand EOC { execute(0); }
+  | prompt redircommand PIPE { execute(1); }
   | prompt SCERR {
 	fprintf(stderr, "error:%d: syntax error near unexpected token ';'\n",
 		yylval.num);
 	seterr(SYNTAX_ERROR); }
+;
+
+redircommand:
+    command
+  | redirects command
 ;
 
 command:
