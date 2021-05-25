@@ -9,18 +9,7 @@
 %{
 #include <stdio.h>
 #include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-#include <readline.h>
 #include "include/cash.h"
-
-extern FILE *yyin;
-
-static int enable_error;
-static char **gargv;
-
-void handle_interrupt(int sig);
 %}
 
 %union {
@@ -88,6 +77,5 @@ syntax_error:
 
 int yyerror(char *s)
 {
-	if (enable_error)
-		fprintf(stderr, "error: %s\n", s);
+	fprintf(stderr, "error: %s\n", s);
 }

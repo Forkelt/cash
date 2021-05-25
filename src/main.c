@@ -16,8 +16,6 @@
 #include "../bison_cash.tab.h"
 
 extern FILE *yyin;
-
-static int enable_error;
 static char **gargv;
 
 void handle_interrupt(int sig)
@@ -31,8 +29,6 @@ void handle_interrupt(int sig)
 
 int main(int argc, char **argv)
 {
-	enable_error = 1;
-
 	struct sigaction inthandler = {
 		.sa_handler = handle_interrupt,
 		.sa_flags = SA_NODEFER
@@ -41,7 +37,6 @@ int main(int argc, char **argv)
 
 	cash_init();
 	if (getopt(argc, argv, OPTSTRING) == 'c') {
-		enable_error = 0;
 		yyin = fmemopen(argv[2], strlen(argv[2]), "r");
 		yyparse();
 		return geterr();
