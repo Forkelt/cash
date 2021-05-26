@@ -22,8 +22,8 @@ typedef struct child_process {
 void cash_init();
 int pass_args(item_t *head);
 void free_args(item_t *tail);
-void set_redirect_input(char *path);
-void set_redirect_output(char *path, int append);
+int set_redirect_input(char *path);
+int set_redirect_output(char *path, int append);
 int execute(int use_pipe);
 int kill_child();
 void seterr(int code);

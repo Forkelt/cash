@@ -118,16 +118,20 @@ void kill_pipe()
 	}
 }
 
-/* TODO: Error checking */
-void set_redirect_input(char *path)
+int set_redirect_input(char *path)
 {
 	if (redir_input)
 		close(redir_input);
 	redir_input = open(path, O_RDONLY);
+	if (redir_input == -1) {
+		fprintf(stderr, "error: failed to open file %s\n", path);
+		redir_input = 0;
+		return 0;
+	}
+	return 1;
 }
 
-/* TODO: Error checking */
-void set_redirect_output(char *path, int append)
+int set_redirect_output(char *path, int append)
 {
 	if (redir_output)
 		close(redir_output);
@@ -135,6 +139,12 @@ void set_redirect_output(char *path, int append)
 		redir_output = open(path, O_WRONLY | O_CREAT | O_APPEND, S_IRWXU);
 	else
 		redir_output = open(path, O_WRONLY | O_CREAT, S_IRWXU);
+	if (redir_output == -1) {
+		fprintf(stderr, "error: failed to open file %s\n", path);
+		redir_output = 0;
+		return 0;
+	}
+	return 1;
 }
 
 int pass_args(item_t *head)
