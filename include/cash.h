@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #define OPTSTRING "c:"
+#define HISTORY_LEN 1000
 #define HISTORY "cashhistory.txt"
 #define SIGNAL_BASE 128
 #define PROMPT "mysh$ "

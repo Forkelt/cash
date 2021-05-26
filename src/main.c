@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
-#include <readline.h>
+#include "../lib/include/linenoise.h"
 #include "../include/cash.h"
 #include "../bison_cash.tab.h"
 
@@ -57,6 +57,8 @@ int main(int argc, char **argv)
 	gargv = argv;
 	gargv[0] = "/proc/self/exe";
 
-	read_history(HISTORY);
+	linenoiseHistorySetMaxLen(HISTORY_LEN);
+	linenoiseHistoryLoad(HISTORY);
 	yyparse();
+	linenoiseHistorySave(HISTORY);
 }

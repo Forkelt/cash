@@ -15,9 +15,9 @@
 %x ARGREDAP
 %x ARGREDOU
 %{
-#include <readline.h>
 #include <stdlib.h>
 #include <signal.h>
+#include "lib/include/linenoise.h"
 #include "include/cash.h"
 #include "bison_cash.tab.h"
 
@@ -44,12 +44,11 @@ static int get_input(char *buff, int size)
 	char *line;
 	if (feof(yyin))
 		return YY_NULL;
-	if ((line = readline(PROMPT)) == NULL)
+	if ((line = linenoise(PROMPT)) == NULL)
 		return YY_NULL;
 	
 	if (line[0] && line[0] != ' ') {
-		add_history(line);
-		write_history(HISTORY);
+		linenoiseHistoryAdd(line);
 	}
 	sprintf(buff, "%s\n", line);
 	free(line);
