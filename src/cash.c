@@ -6,17 +6,17 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * in your language of choice.
  */
-#include <stdio.h>
-#include <syscall.h>
-#include <unistd.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 #include <limits.h>
 #include <pwd.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <syscall.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include "../include/cash.h"
 
 char prev_wd[PATH_MAX];

@@ -6,11 +6,11 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * in your language of choice.
  */
+#include <signal.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
+#include <unistd.h>
 #include "../lib/include/linenoise.h"
 #include "../include/cash.h"
 #include "../bison_cash.tab.h"

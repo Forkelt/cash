@@ -15,11 +15,11 @@
 %x ARGREDAP
 %x ARGREDOU
 %{
-#include <stdlib.h>
 #include <signal.h>
-#include "lib/include/linenoise.h"
-#include "include/cash.h"
+#include <stdlib.h>
 #include "bison_cash.tab.h"
+#include "include/cash.h"
+#include "lib/include/linenoise.h"
 
 #define YY_INPUT(buff, result, size) result = get_input(buff, size);
 
