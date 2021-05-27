@@ -12,6 +12,7 @@
  *
  * Copyright (c) 2010-2016, Salvatore Sanfilippo <antirez at gmail dot com>
  * Copyright (c) 2010-2013, Pieter Noordhuis <pcnoordhuis at gmail dot com>
+ * Copyright (c) 2011, Steve Bennett <steveb at workware dot net dot au>
  *
  * All rights reserved.
  *
@@ -109,6 +110,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <sys/stat.h>
@@ -169,6 +171,7 @@ enum KEY_ACTION{
 	CTRL_T = 20,        /* Ctrl-t */
 	CTRL_U = 21,        /* Ctrl+u */
 	CTRL_W = 23,        /* Ctrl+w */
+	CTRL_Z = 26,        /* Ctrl+z */
 	ESC = 27,           /* Escape */
 	BACKSPACE =  127    /* Backspace */
 };
@@ -862,6 +865,16 @@ static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, 
                 hintsCallback = hc;
             }
             return 0;
+        case CTRL_Z:     /* ctrl-z */
+#ifdef SIGTSTP
+            /* send ourselvs SIGUSP */
+            disableRawMode(STDIN_FILENO);
+            raise(SIGTSTP);
+            /* and resume */
+            enableRawMode(STDIN_FILENO);
+            refreshLine(&l);
+#endif
+            break;
         case BACKSPACE:   /* backspace */
         case 8:     /* ctrl-h */
             linenoiseEditBackspace(&l);
