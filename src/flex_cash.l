@@ -71,7 +71,7 @@ static int get_input(char *buff, int size)
 }
 .*";"[ \t]*";".*\n? { yylval.num = yylineno; return SCERR; } /* match ;; */
 .*"|"[ \t]*"|".*\n? { yylval.num = yylineno; return PPERR; } /* match || */
-.*[><]{3,}.* { yylval.num == yylineno; return SNERR; } /* match invalid redirects */
+.*[><]{3,}.* { yylval.num = yylineno; return SNERR; } /* match invalid redirects */
 ("#".*)?\n { return EOL; }
 [ \t] {} /* ignore whitespace */
 
