@@ -17,8 +17,8 @@
 %{
 #include <signal.h>
 #include <stdlib.h>
-#include "bison_cash.tab.h"
 #include "include/cash.h"
+#include "bison_cash.tab.h"
 #include "lib/include/linenoise.h"
 
 #define YY_INPUT(buff, result, size) result = get_input(buff, size);
