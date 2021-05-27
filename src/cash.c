@@ -56,13 +56,13 @@ int internal_cd(int outputfd)
 		const char *home_dir = getenv("HOME");
 		if (!home_dir)
 			home_dir = getpwuid(getuid())->pw_dir;
-		if (exit_code = chdir(home_dir))
+		if ((exit_code = chdir(home_dir)))
 			return 1;
 
 		strcpy(prev_wd, curr_wd);
 		strcpy(curr_wd, home_dir);
 	} else if (!strcmp(argv[1], "-")) {
-		if (exit_code = chdir(prev_wd))
+		if ((exit_code = chdir(prev_wd)))
 			return 1;
 
 		dprintf(outputfd, "%s\n", prev_wd);
@@ -70,7 +70,7 @@ int internal_cd(int outputfd)
 		strcpy(prev_wd, curr_wd);
 		strcpy(curr_wd, temp);
 	} else {
-		if (exit_code = chdir(argv[1]))
+		if ((exit_code = chdir(argv[1])))
 			return 1;
 
 		strcpy(prev_wd, curr_wd);
