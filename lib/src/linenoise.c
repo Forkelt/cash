@@ -852,8 +852,16 @@ static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, 
             }
             return (int)l.len;
         case CTRL_C:     /* ctrl-c */
-            errno = EAGAIN;
-            return -1;
+            buf[0] = '\0'; /* ensure line is ignored by parser */
+            if (hintsCallback) {
+                /* Force a refresh without hints to leave the previous
+                 * line as the user typed it after a newline. */
+                linenoiseHintsCallback *hc = hintsCallback;
+                hintsCallback = NULL;
+                refreshLine(&l);
+                hintsCallback = hc;
+            }
+            return 0;
         case BACKSPACE:   /* backspace */
         case 8:     /* ctrl-h */
             linenoiseEditBackspace(&l);
