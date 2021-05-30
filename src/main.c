@@ -27,7 +27,7 @@ void handle_interrupt(int sig)
 	exit(127);
 }
 
-void save_history(void)
+void save_history()
 {
 	linenoiseHistorySave(HISTORY);
 }
