@@ -61,4 +61,5 @@ int main(int argc, char **argv)
 	linenoiseHistoryLoad(HISTORY);
 	yyparse();
 	linenoiseHistorySave(HISTORY);
+	return geterr();
 }

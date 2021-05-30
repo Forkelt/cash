@@ -88,7 +88,7 @@ void internal_exit()
 		seterr(1);
 		return;
 	}
-	exit(argc > 1 ? atoi(argv[0]) : exit_code);
+	exit(argc > 1 ? atoi(argv[1]) : exit_code);
 }
 
 void wait_pipe()
