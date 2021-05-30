@@ -10,6 +10,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "include/cash.h"
+
+int yylex();
+int yyerror(char *error);
 %}
 
 %union {
