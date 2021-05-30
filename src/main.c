@@ -27,6 +27,11 @@ void handle_interrupt(int sig)
 	exit(127);
 }
 
+void save_history(void)
+{
+	linenoiseHistorySave(HISTORY);
+}
+
 int main(int argc, char **argv)
 {
 	struct sigaction inthandler = {
@@ -59,7 +64,10 @@ int main(int argc, char **argv)
 
 	linenoiseHistorySetMaxLen(HISTORY_LEN);
 	linenoiseHistoryLoad(HISTORY);
+	/* Ensure linenoise's atexit() executes last by setting it first */
+	linenoiseSetAtExit();
+	/* Save history even if exited through internal exit command */
+	atexit(save_history);
 	yyparse();
-	linenoiseHistorySave(HISTORY);
 	return geterr();
 }

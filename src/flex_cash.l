@@ -47,9 +47,8 @@ static int get_input(char *buff, int size)
 	if ((line = linenoise(PROMPT)) == NULL)
 		return YY_NULL;
 	
-	if (line[0] && line[0] != ' ') {
+	if (line[0] && line[0] != ' ')
 		linenoiseHistoryAdd(line);
-	}
 	sprintf(buff, "%s\n", line);
 	free(line);
 	return strlen(buff);
