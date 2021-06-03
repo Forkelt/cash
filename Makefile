@@ -8,7 +8,7 @@ CCFLAGS = -Wall -Wextra
 YAC = bison
 LEX = flex
 
-TARGET = mysh
+TARGET = cash
 
 SRC = $(wildcard $(SDIR)/*.c)
 DEPS = $(wildcard $(IDIR)/*.h)

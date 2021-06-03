@@ -6,7 +6,7 @@
 #define HISTORY_LEN 1000
 #define HISTORY "cashhistory.txt"
 #define SIGNAL_BASE 128
-#define PROMPT "mysh$ "
+#define PROMPT "cash$ "
 #define SYNTAX_ERROR 254
 
 typedef struct item {
