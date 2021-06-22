@@ -278,6 +278,8 @@ int execute(int use_pipe)
 
 		if (!WIFSIGNALED(status))
 			exit_code = WEXITSTATUS(status);
+		else
+			exit_code = SIGNAL_BASE + WTERMSIG(status);
 		child = 0;
 	}
 	return 1;
